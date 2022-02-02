@@ -59,7 +59,7 @@ def pop_dct(a, n):
 @time_func
 def pop_lst(a, n):
     for i in range(0, n, 5):
-        lst.pop(i)  # O(1)
+        lst.pop(i)  # O(n)
     return a
 
 
