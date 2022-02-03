@@ -23,28 +23,79 @@ f1dcaeeafeb855965535d77c55782349444b
 п.с. статья на Хабре - python db-api
 """
 
-# Импортируем библиотеку, соответствующую типу нашей базы данных
 import sqlite3
+import bcrypt
 
-# Создаем соединение с нашей базой данных
-# В нашем примере у нас это просто файл базы
-conn = sqlite3.connect('Chinook_Sqlite.sqlite')
 
-# Создаем курсор - это специальный объект который делает запросы и получает их результаты
-cursor = conn.cursor()
+def main():
+    while True:
+        print('Выберите действие')
+        a = int(input('1: Регистрация\n2: Вход\n0: Выход\n'))
+        if a == 1:
+            new_user = ent(a)
+            if new_user == 1:
+                print(f'Пользователь с таким именем уже есть\n')
+            else:
+                print(push_user_db(get_user_db(new_user[0]), new_user[1]))
+        elif a == 2:
+            user = ent(a)
+            if user == 1:
+                print(f'Авторизация прошла успешно\n')
+                exit('success')
+            else:
+                print('Логин пароль не верный\n')
+        elif a == 0:
+            exit('end')
 
-# ТУТ БУДЕТ НАШ КОД РАБОТЫ С БАЗОЙ ДАННЫХ
-# КОД ДАЛЬНЕЙШИХ ПРИМЕРОВ ВСТАВЛЯТЬ В ЭТО МЕСТО
 
-# Делаем SELECT запрос к базе данных, используя обычный SQL-синтаксис
-cursor.execute("SELECT Name FROM Artist ORDER BY Name LIMIT 3")
+def connect_db(el):
+    connect = sqlite3.connect('user.sqlite')
+    with connect:
+        cursor = connect.cursor()
+        cursor.execute(el)
+        connect.commit()
+        res = cursor.fetchall()
+    return res
 
-# Получаем результат сделанного запроса
-results = cursor.fetchall()
-results2 = cursor.fetchall()
 
-print(results)   # [('A Cor Do Som',), ('Aaron Copland & London Symphony Orchestra',), ('Aaron Goldberg',)]
-print(results2)  # []
+def gen_hash_password(val):
+    return (bcrypt.hashpw(val.encode('utf-8'), bcrypt.gensalt(8))).decode()
 
-# Не забываем закрыть соединение с базой данных
-conn.close()
+
+def get_hash_password(h, p):
+    return bcrypt.checkpw(p.encode('utf-8'), h[1]['hash'])
+
+
+def ent(a):
+    b = get_user_db(input('Логин: '))
+    if b[0] == 1 and a == 1:
+        return 1
+    elif b[0] == 1 and a == 2:
+        boolean = get_hash_password(b, input('Пароль: '))
+        return boolean
+    else:
+        c = gen_hash_password(input('Пароль: '))
+        return b, c
+
+
+def get_user_db(val):
+    get_login = f"SELECT login, hash FROM users WHERE login='"+val+"';"
+    res = connect_db(get_login)
+    if res == []:
+        return val
+    else:
+        order = {
+            'login': res[0][0],
+            'hash': res[0][1].encode()
+        }
+        return 1, order
+
+
+def push_user_db(login, h):
+    push_ent = f"INSERT INTO users (login, hash) VALUES ('{login}', '{h}');"
+    connect_db(push_ent)
+    return f'Пользователь добавлен\n'
+
+
+if __name__ == '__main__':
+    main()
