@@ -22,3 +22,20 @@
 р
 а
 """
+import hashlib
+
+
+def substring(a):
+    for i in range(len(a)):
+        for j in range(i + 1, len(a) + 1):
+            h = hashlib.md5(a[i:j].encode('utf-8')).hexdigest()
+            if not hash_word.get(h) and a != a[i:j]:
+                hash_word[h] = a[i:j]
+    return len(hash_word)
+
+
+hash_word = {}
+word = 'гром'
+print(f'{word} - {substring(word)} уникальных подстрок')
+for key, val in hash_word.items():
+    print(val)
